@@ -41,6 +41,8 @@ async function createWindow() {
 
 	// Wait for the page to fully load
 	mainWindow.webContents.on('did-finish-load', async () => {
+		// TODO: Will cause an issue when the player isn't found, happens for new user
+
 		// Generic function to wait for an element
 		await mainWindow.webContents.executeJavaScript(`
 			async function waitForElement(selector, maxWaitTime) {

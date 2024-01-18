@@ -1,6 +1,6 @@
 {
-	"name": "soundcloud-rpc",
-	"version": "0.0.3",
+	"name": "soundcloud-live-rpc",
+	"version": "0.0.4",
 	"description": "A desktop application that displays the user's currently playing SoundCloud track in their Discord status using the Electron framework and Discord Rich Presence API.",
 	"author": "Maghwyn",
 	"license": "MIT",
@@ -14,7 +14,7 @@
 	},
 	"main": "./tsc/app.js",
 	"build": {
-		"appId": "com.maghwyn.soundcloud-rpc",
+		"appId": "com.maghwyn.soundcloud-live-rpc",
 		"productName": "SoundCloud",
 		"asar": true,
 		"files": [
@@ -24,10 +24,10 @@
 			"output": "dist"
 		},
 		"mac": {
-			"icon": "assets/icons/soundcloud-mac.icns"
+			"icon": "assets/ico/soundcloud-mac.icns"
 		},
 		"win": {
-			"icon": "assets/icons/soundcloud-win.ico"
+			"icon": "assets/ico/soundcloud-win.ico"
 		}
 	},
 	"devDependencies": {

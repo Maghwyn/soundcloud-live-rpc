@@ -5,6 +5,7 @@ import { truncate } from './utils';
 
 class RPCDiscordClient extends Client {
 	private static instance: RPCDiscordClient;
+	private isPlaying = false;
 	private iconPlay = {
 		url: 'https://i.ibb.co/31gPDSC/play.png',
 		text: 'Playing',
@@ -42,6 +43,7 @@ class RPCDiscordClient extends Client {
 			delete this.presence.endTimestamp;
 		}
 
+		this.isPlaying = isPlaying;
 		this.updatePresence();
 	}
 
@@ -67,6 +69,8 @@ class RPCDiscordClient extends Client {
 	}
 
 	public setPresenceTrackTime(time: number, duration: number) {
+		if (!this.isPlaying) return;
+
 		const remaining = (duration - time) * 1000;
 		this.presence.endTimestamp = +new Date() + remaining;
 

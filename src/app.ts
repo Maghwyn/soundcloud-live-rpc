@@ -172,6 +172,7 @@ Menu.setApplicationMenu(null);
 
 // When the RPC client timeout, we exit the app.
 RPCClient.once('timeout', () => {
+	// TODO: Instead of exiting, perhaps show a notification of some sort in the top right corner
 	process.exitCode = 1;
 	app.exit(1);
 })

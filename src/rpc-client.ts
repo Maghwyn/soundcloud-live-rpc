@@ -6,6 +6,7 @@ import { truncate } from './utils';
 class RPCDiscordClient extends Client {
 	private static instance: RPCDiscordClient;
 	private isPlaying = false;
+
 	private iconPlay = {
 		url: 'https://i.ibb.co/31gPDSC/play.png',
 		text: 'Playing',

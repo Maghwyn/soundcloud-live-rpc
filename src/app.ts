@@ -19,6 +19,11 @@ async function createWindow() {
 	// Load the SoundCloud website
 	mainWindow.loadURL(config.startUrl);
 
+	// Emitted when the window is closed.
+	mainWindow.on('closed', () => {
+		mainWindow = null;
+	});
+
 	ipcMain.on('set-player', (_: IpcMainEvent, isPlaying: boolean) => {
 		RPCClient.setPresenceStatus(isPlaying);
 	});
@@ -34,32 +39,7 @@ async function createWindow() {
 		RPCClient.setPresenceTrackTime(parseInt(time), parseInt(duration));
 	});
 
-	// Emitted when the window is closed.
-	mainWindow.on('closed', () => {
-		mainWindow = null;
-	});
-
-	// Wait for the page to fully load
-	mainWindow.webContents.on('did-finish-load', async () => {
-		// TODO: Will cause an issue when the player isn't found, happens for new user
-
-		// Generic function to wait for an element
-		await mainWindow.webContents.executeJavaScript(`
-			async function waitForElement(selector, maxWaitTime) {
-				const startTime = Date.now();
-			
-				while (document.querySelector(selector) === null) {
-					await new Promise(resolve => setTimeout(resolve, 1000));
-			
-					if (Date.now() - startTime > maxWaitTime) {
-						throw new Error('Timeout: Element not found within the maxWaitTime');
-					}
-				}
-			
-				return document.querySelector(selector);
-			}
-		`);
-
+	ipcMain.once('player-active', async (_: IpcMainEvent) => {
 		// Observer for the play button
 		await mainWindow.webContents.executeJavaScript(`
 			(async () => {
@@ -132,6 +112,54 @@ async function createWindow() {
 					const observerControlPlay = new MutationObserver(sendPlayingTrackTime);
 					observerControlPlay.observe(playbackTimeline, { attributes: true });
 					sendPlayingTrackTime();
+				} catch (err) {
+					window.alert(err.message);
+				}
+			})()
+		`);
+	});
+
+	// Wait for the page to fully load
+	mainWindow.webContents.on('did-finish-load', async () => {
+		// Generic function to wait for an element
+		await mainWindow.webContents.executeJavaScript(`
+			async function waitForElement(selector, maxWaitTime, isInfinite = false) {
+				const startTime = Date.now();
+			
+				while (document.querySelector(selector) === null) {
+					await new Promise(resolve => setTimeout(resolve, 1000));
+			
+					if (Date.now() - startTime > maxWaitTime && !isInfinite) {
+						throw new Error('Timeout: Element not found within the maxWaitTime');
+					}
+				}
+			
+				return document.querySelector(selector);
+			}
+		`);
+
+		// We await the player to be activated.
+		//! WARNING: It's an infinite wait.
+		await mainWindow.webContents.executeJavaScript(`
+			(async () => {
+				function sendOnPlayerActive() {
+					const playerControlElement = document.querySelector('div.playControls');
+
+					if (playerControlElement) {
+						const isActive = playerControlElement.classList.contains('m-visible');
+						
+						if (isActive) {
+							window.electronAPI.onPlayerActive();
+						}
+					}
+				}
+
+				try {
+					const playControls = await waitForElement('div.playControls', 0, true);
+
+					const observerPlayControls = new MutationObserver(sendOnPlayerActive);
+					observerPlayControls.observe(playControls, { attributes: true });
+					sendOnPlayerActive();
 				} catch (err) {
 					window.alert(err.message);
 				}

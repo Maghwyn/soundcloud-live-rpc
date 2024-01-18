@@ -75,6 +75,7 @@ async function createWindow() {
 
 					const observerControlPlay = new MutationObserver(sendPlayingStatus);
 					observerControlPlay.observe(playControlsPlay, { attributes: true });
+					sendPlayingStatus();
 				} catch (err) {
 					window.alert(err.message);
 				}
@@ -103,6 +104,7 @@ async function createWindow() {
 				
 					const observerControlPlay = new MutationObserver(sendPlayingTrackData);
 					observerControlPlay.observe(playbackSoundBadge, { childList: true, subtree: true });
+					sendPlayingTrackData();
 				} catch (err) {
 					window.alert(err.message);
 				}
@@ -127,6 +129,7 @@ async function createWindow() {
 				
 					const observerControlPlay = new MutationObserver(sendPlayingTrackTime);
 					observerControlPlay.observe(playbackTimeline, { attributes: true });
+					sendPlayingTrackTime();
 				} catch (err) {
 					window.alert(err.message);
 				}

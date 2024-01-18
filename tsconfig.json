@@ -1,15 +1,31 @@
 {
-  "compilerOptions": {
-    "module": "commonjs",
-    "noImplicitAny": true,
-    "sourceMap": true,
-    "outDir": "tsc",
-    "baseUrl": ".",
-    "paths": {
-      "*": ["node_modules/*"]
-    }
-  },
-  "include": [
-    "src/**/*"
-  ]
+	"compilerOptions": {
+		"lib": [
+			"es2020",
+			"es2019",
+			"es2017",
+			"esnext.asynciterable",
+			"es6",
+		],
+		"module": "commonjs",
+		"outDir": "tsc",
+		"target": "es2020",
+		"baseUrl": ".",
+		"declaration": true,
+		"removeComments": true,
+		"allowSyntheticDefaultImports": true,
+		"sourceMap": true,
+		"incremental": true,
+		"skipLibCheck": true,
+		"strictNullChecks": false,
+		"noImplicitAny": false,
+		"strictBindCallApply": false,
+		"forceConsistentCasingInFileNames": false,
+		"noFallthroughCasesInSwitch": false,
+		"esModuleInterop": true,
+		"typeRoots": ["./node_modules/@types"],
+	},
+	"include": [
+		"src/**/*"
+	]
 }

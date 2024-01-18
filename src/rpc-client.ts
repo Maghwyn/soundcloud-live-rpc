@@ -21,9 +21,12 @@ class RPCDiscordClient extends Client {
 
 	private constructor() {
 		super({ transport: 'ipc' });
-		this.login({ clientId: config.clientId }).catch((err) => {
-			process.exitCode = 1;
-			throw new Error(err);
+	
+		this.login({ clientId: config.clientId }).catch((err: Error) => {
+			//! Can be caused by login too many times in a short time
+
+			console.error(err);
+			this.emit('timeout', err);
 		});
 	}
 

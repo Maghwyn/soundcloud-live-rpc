@@ -170,6 +170,12 @@ async function createWindow() {
 
 Menu.setApplicationMenu(null);
 
+// When the RPC client timeout, we exit the app.
+RPCClient.once('timeout', () => {
+	process.exitCode = 1;
+	app.exit(1);
+})
+
 // When Electron has finished initializing, create the main window
 app.on('ready', createWindow);
 

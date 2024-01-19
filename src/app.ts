@@ -50,36 +50,13 @@ async function createWindow() {
 	ipcMain.once('player-active', async () => {
 		// Observer for the play button and update the time with it
 		await mainWindow.webContents.executeJavaScript(`
-			function sendPlayingStatus() {
-				const playerElement = document.querySelector('.playControls__play');
-
-				if (playerElement) {
-					const isPlaying = playerElement.classList.contains('playing');
-					window.electronAPI.setPlayer(isPlaying);
-
-					if (isPlaying) {
-						sendPlayingTrackTime();
-					}
-				}
-			}
-
 			(async () => {
-				function sendPlayingTrackTime() {
-					const progressWrapperElement = document.querySelector('.playbackTimeline__progressWrapper');
-
-					if (progressWrapperElement) {
-						const time = progressWrapperElement.getAttribute('aria-valuenow');
-						const duration = progressWrapperElement.getAttribute('aria-valuemax');
-						window.electronAPI.setTrackTime(time, duration);
-					}
-				}
-
 				try {
 					const playControlsPlay = await waitForElement('.playControls__play', 5000);
 
-					const observerPlayControlPlay = new MutationObserver(sendPlayingStatus);
+					const observerPlayControlPlay = new MutationObserver(window.electronAPI.setPlayer);
 					observerPlayControlPlay.observe(playControlsPlay, { attributes: true });
-					sendPlayingStatus();
+					window.electronAPI.setPlayer();
 				} catch (err) {
 					window.alert(err.message);
 				}
@@ -88,27 +65,13 @@ async function createWindow() {
 
 		// Observer for the track data
 		await mainWindow.webContents.executeJavaScript(`
-			function sendPlayingTrackData() {
-				const authorElement = document.querySelector('.playbackSoundBadge__lightLink');
-				const titleElement = document.querySelector('.playbackSoundBadge__titleLink');
-				const spanElement = document.querySelector('.playbackSoundBadge__avatar .image__lightOutline span');
-
-				if (authorElement && titleElement && spanElement) {
-					const author = authorElement.textContent;
-					const title = titleElement.querySelector('span:nth-child(2)').innerText;
-					const url = titleElement.href;
-					const imageUrl = spanElement.style.backgroundImage;
-					window.electronAPI.setTrackData(author, title, url, imageUrl);
-				}
-			}
-
 			(async () => {
 				try {
 					const playbackSoundBadge = await waitForElement('.playbackSoundBadge', 5000);
 				
-					const observerSoundBadge = new MutationObserver(sendPlayingTrackData);
+					const observerSoundBadge = new MutationObserver(window.electronAPI.setTrackData);
 					observerSoundBadge.observe(playbackSoundBadge, { childList: true, subtree: true });
-					sendPlayingTrackData();
+					window.electronAPI.setTrackData();
 				} catch (err) {
 					window.alert(err.message);
 				}
@@ -118,32 +81,10 @@ async function createWindow() {
 		// Observer for the track time
 		await mainWindow.webContents.executeJavaScript(`
 			(async () => {
-				function sendPlayingTrackTime() {
-					const progressWrapperElement = document.querySelector('.playbackTimeline__progressWrapper');
-
-					if (progressWrapperElement) {
-						const time = progressWrapperElement.getAttribute('aria-valuenow');
-						const duration = progressWrapperElement.getAttribute('aria-valuemax');
-						window.electronAPI.setTrackTime(time, duration);
-					}
-				}
-				
-				function sendPlayingTrackTimeDrag() {
-					const playbackTimeline = document.querySelector('div.playbackTimeline');
-
-					if (playbackTimeline) {
-						const dragDropped = !playbackTimeline.classList.contains('is-dragging');
-
-						if (dragDropped) {
-							sendPlayingTrackTime();
-						}
-					}
-				}
-
 				try {
 					const playbackTimeline = await waitForElement('div.playbackTimeline', 5000);
 
-					const obserPlaybackTimeline = new MutationObserver(sendPlayingTrackTimeDrag);
+					const obserPlaybackTimeline = new MutationObserver(window.electronAPI.onTrackDrag);
 					obserPlaybackTimeline.observe(playbackTimeline, { attributes: true });
 				} catch (err) {
 					window.alert(err.message);
@@ -209,16 +150,16 @@ Menu.setApplicationMenu(null);
 RPCClient.on('timeout', async () => {
 	await mainWindow.webContents.executeJavaScript(`
 		window.rpcButton.show();
-		window.electronAPI.clearPresence();
+		window.electronAPI.onClearPresence();
 	`);
 });
 
 RPCClient.on('connected', async () => {
-	console.log("connected ?");
 	await mainWindow.webContents.executeJavaScript(`
 		window.rpcButton.hide();
-		window.alert(sendPlayingStatus);
-	`).catch(err => console.error(err))
+		window.electronAPI.setPlayer();
+		window.electronAPI.setTrackData();
+	`);
 });
 
 // When Electron has finished initializing, create the main window

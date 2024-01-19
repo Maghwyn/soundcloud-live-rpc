@@ -1,13 +1,58 @@
 import { contextBridge, ipcRenderer } from 'electron/renderer';
 
 contextBridge.exposeInMainWorld('electronAPI', {
+	onClearPresence: () => ipcRenderer.send('clear-presence'),
 	onPlayerActive: () => ipcRenderer.send('player-active'),
-	setPlayer: (isPlaying: boolean) => ipcRenderer.send('set-player', isPlaying),
-	setTrackData: (author: string, title: string, url: string, imageUrl: string) =>
-		ipcRenderer.send('set-track-image', author, title, url, imageUrl),
-	setTrackTime: (time: string, duration: string) =>
-		ipcRenderer.send('set-track-time', time, duration),
-	clearPresence: () => ipcRenderer.send('clear-presence'),
+	onTrackDrag: () => {
+		const playbackTimeline: HTMLDivElement = document.querySelector('div.playbackTimeline');
+
+		if (playbackTimeline) {
+			const dragDropped = !playbackTimeline.classList.contains('is-dragging');
+
+			if (dragDropped) {
+				const progressWrapperElement: HTMLDivElement = document.querySelector('.playbackTimeline__progressWrapper');
+
+				if (progressWrapperElement) {
+					const time = progressWrapperElement.getAttribute('aria-valuenow');
+					const duration = progressWrapperElement.getAttribute('aria-valuemax');
+					ipcRenderer.send('set-track-time', time, duration);
+				}
+			}
+		}
+	},
+	setPlayer: () => {
+		const playerElement: HTMLButtonElement = document.querySelector('.playControls__play');
+
+		if (playerElement) {
+			const isPlaying = playerElement.classList.contains('playing');
+			ipcRenderer.send('set-player', isPlaying);
+
+			if (isPlaying) {
+				const progressWrapperElement: HTMLDivElement = document.querySelector('.playbackTimeline__progressWrapper');
+
+				if (progressWrapperElement) {
+					const time = progressWrapperElement.getAttribute('aria-valuenow');
+					const duration = progressWrapperElement.getAttribute('aria-valuemax');
+					ipcRenderer.send('set-track-time', time, duration);
+				}
+			}
+		}
+	},
+	setTrackData: () => {
+		const authorElement: HTMLAnchorElement = document.querySelector('.playbackSoundBadge__lightLink');
+		const titleElement: HTMLAnchorElement = document.querySelector('.playbackSoundBadge__titleLink');
+		const spanElement: HTMLSpanElement = document.querySelector('.playbackSoundBadge__avatar .image__lightOutline span');
+
+		if (authorElement && titleElement && spanElement) {
+			const titleSpanElement: HTMLSpanElement = titleElement.querySelector('span:nth-child(2)');
+
+			const author = authorElement.textContent;
+			const title = titleSpanElement.innerText;
+			const url = titleElement.href;
+			const imageUrl = spanElement.style.backgroundImage;
+			ipcRenderer.send('set-track-image', author, title, url, imageUrl);
+		}
+	},
 });
 
 contextBridge.exposeInMainWorld('rpcButton', {

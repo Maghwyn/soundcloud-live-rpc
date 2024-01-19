@@ -153,7 +153,11 @@ contextBridge.exposeInMainWorld('rpcButton', {
 			btn.textContent = 'Reconnect to Discord RPC';
 			btn.style.display = "block";
 			btn.classList.add('shake');
-			btn.innerHTML = '';
+
+			const spinner = btn.querySelector("span");
+			if (spinner !== null) {
+				btn.removeChild(spinner);
+			}
 		}
 	},
 	hide: () => {
@@ -161,6 +165,10 @@ contextBridge.exposeInMainWorld('rpcButton', {
 		if (!btn) return;
 
 		btn.style.display = "none";
-		btn.innerHTML = '';
+
+		const spinner = btn.querySelector("span");
+		if (spinner !== null) {
+			btn.removeChild(spinner);
+		}
 	}
 });

@@ -5,6 +5,7 @@ import { truncate } from './utils';
 
 class RPCDiscordClient extends Client {
 	private static instance: RPCDiscordClient;
+	// Prevent the timer from starting when the song is paused and the user drag the pbar
 	private isPlaying = false;
 
 	private iconPlay = {

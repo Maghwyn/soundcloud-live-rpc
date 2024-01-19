@@ -40,23 +40,37 @@ async function createWindow() {
 	});
 
 	ipcMain.once('player-active', async (_: IpcMainEvent) => {
-		// Observer for the play button
+		// Observer for the play button and update the time with it
 		await mainWindow.webContents.executeJavaScript(`
 			(async () => {
+				function sendPlayingTrackTime() {
+					const progressWrapperElement = document.querySelector('.playbackTimeline__progressWrapper');
+
+					if (progressWrapperElement) {
+						const time = progressWrapperElement.getAttribute('aria-valuenow');
+						const duration = progressWrapperElement.getAttribute('aria-valuemax');
+						window.electronAPI.setTrackTime(time, duration);
+					}
+				}
+
 				function sendPlayingStatus() {
 					const playerElement = document.querySelector('.playControls__play');
 
 					if (playerElement) {
 						const isPlaying = playerElement.classList.contains('playing');
 						window.electronAPI.setPlayer(isPlaying);
+
+						if (isPlaying) {
+							sendPlayingTrackTime();
+						}
 					}
 				}
 
 				try {
 					const playControlsPlay = await waitForElement('.playControls__play', 5000);
 
-					const observerControlPlay = new MutationObserver(sendPlayingStatus);
-					observerControlPlay.observe(playControlsPlay, { attributes: true });
+					const observerPlayControlPlay = new MutationObserver(sendPlayingStatus);
+					observerPlayControlPlay.observe(playControlsPlay, { attributes: true });
 					sendPlayingStatus();
 				} catch (err) {
 					window.alert(err.message);
@@ -84,8 +98,8 @@ async function createWindow() {
 				try {
 					const playbackSoundBadge = await waitForElement('.playbackSoundBadge', 5000);
 				
-					const observerControlPlay = new MutationObserver(sendPlayingTrackData);
-					observerControlPlay.observe(playbackSoundBadge, { childList: true, subtree: true });
+					const observerSoundBadge = new MutationObserver(sendPlayingTrackData);
+					observerSoundBadge.observe(playbackSoundBadge, { childList: true, subtree: true });
 					sendPlayingTrackData();
 				} catch (err) {
 					window.alert(err.message);
@@ -105,13 +119,24 @@ async function createWindow() {
 						window.electronAPI.setTrackTime(time, duration);
 					}
 				}
+				
+				function sendPlayingTrackTimeDrag() {
+					const playbackTimeline = document.querySelector('div.playbackTimeline');
+
+					if (playbackTimeline) {
+						const dragDropped = !playbackTimeline.classList.contains('is-dragging');
+
+						if (dragDropped) {
+							sendPlayingTrackTime();
+						}
+					}
+				}
 
 				try {
-					const playbackTimeline = await waitForElement('.playbackTimeline__progressWrapper', 5000);
-				
-					const observerControlPlay = new MutationObserver(sendPlayingTrackTime);
-					observerControlPlay.observe(playbackTimeline, { attributes: true });
-					sendPlayingTrackTime();
+					const playbackTimeline = await waitForElement('div.playbackTimeline', 5000);
+
+					const obserPlaybackTimeline = new MutationObserver(sendPlayingTrackTimeDrag);
+					obserPlaybackTimeline.observe(playbackTimeline, { attributes: true });
 				} catch (err) {
 					window.alert(err.message);
 				}

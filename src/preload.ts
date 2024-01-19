@@ -76,8 +76,8 @@ contextBridge.exposeInMainWorld('rpcButton', {
 			}
 
 			.shake {
-				-webkit-animation: shake 4s cubic-bezier(0.455, 0.030, 0.515, 0.955) infinite both;
-				animation: shake 4s cubic-bezier(0.455, 0.030, 0.515, 0.955) infinite both;
+				-webkit-animation: shake 4s cubic-bezier(0.455, 0.030, 0.515, 0.955) 2s infinite both;
+				animation: shake 4s cubic-bezier(0.455, 0.030, 0.515, 0.955) 2s infinite both;
 			}
 			
 			@keyframes shake {
@@ -150,13 +150,20 @@ contextBridge.exposeInMainWorld('rpcButton', {
 				ipcRenderer.send('retry-login');
 			});
 		} else {
-			btn.textContent = 'Reconnect to Discord RPC';
 			btn.style.display = "block";
-			btn.classList.add('shake');
 
 			const spinner = btn.querySelector("span");
 			if (spinner !== null) {
-				btn.removeChild(spinner);
+				// Visual intended, but it also prevent the spam of the event since the lib
+				// keep the connect promise in memory and reject it right away.
+				setTimeout(() => {
+					btn.removeChild(spinner);
+					btn.textContent = 'Reconnect to Discord RPC';
+					btn.classList.add('shake');
+				}, 2000);
+			} else {
+				btn.textContent = 'Reconnect to Discord RPC';
+				btn.classList.add('shake');
 			}
 		}
 	},

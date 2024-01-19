@@ -1,4 +1,4 @@
-# soundcloud-live-rpc - A live Soundcloud client with Discord Rich Presence support
+# soundcloud-live-rpc - A Soundcloud client with Discord Rich Presence live support
 
 ## Preview
 ![Preview-Play](assets/preview-play.png)

@@ -26,11 +26,11 @@ async function createWindow() {
 
 	ipcMain.on('retry-login', () => {
 		RPCClient.setup();
-	})
+	});
 
 	ipcMain.on('clear-presence', () => {
 		RPCClient.clearActivity();
-	})
+	});
 
 	ipcMain.on('set-player', (_: IpcMainEvent, isPlaying: boolean) => {
 		RPCClient.setPresenceStatus(isPlaying);

@@ -10,7 +10,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 			const dragDropped = !playbackTimeline.classList.contains('is-dragging');
 
 			if (dragDropped) {
-				const progressWrapperElement: HTMLDivElement = document.querySelector('.playbackTimeline__progressWrapper');
+				const progressWrapperElement: HTMLDivElement = document.querySelector(
+					'.playbackTimeline__progressWrapper',
+				);
 
 				if (progressWrapperElement) {
 					const time = progressWrapperElement.getAttribute('aria-valuenow');
@@ -28,7 +30,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
 			ipcRenderer.send('set-player', isPlaying);
 
 			if (isPlaying) {
-				const progressWrapperElement: HTMLDivElement = document.querySelector('.playbackTimeline__progressWrapper');
+				const progressWrapperElement: HTMLDivElement = document.querySelector(
+					'.playbackTimeline__progressWrapper',
+				);
 
 				if (progressWrapperElement) {
 					const time = progressWrapperElement.getAttribute('aria-valuenow');
@@ -39,12 +43,19 @@ contextBridge.exposeInMainWorld('electronAPI', {
 		}
 	},
 	setTrackData: () => {
-		const authorElement: HTMLAnchorElement = document.querySelector('.playbackSoundBadge__lightLink');
-		const titleElement: HTMLAnchorElement = document.querySelector('.playbackSoundBadge__titleLink');
-		const spanElement: HTMLSpanElement = document.querySelector('.playbackSoundBadge__avatar .image__lightOutline span');
+		const authorElement: HTMLAnchorElement = document.querySelector(
+			'.playbackSoundBadge__lightLink',
+		);
+		const titleElement: HTMLAnchorElement = document.querySelector(
+			'.playbackSoundBadge__titleLink',
+		);
+		const spanElement: HTMLSpanElement = document.querySelector(
+			'.playbackSoundBadge__avatar .image__lightOutline span',
+		);
 
 		if (authorElement && titleElement && spanElement) {
-			const titleSpanElement: HTMLSpanElement = titleElement.querySelector('span:nth-child(2)');
+			const titleSpanElement: HTMLSpanElement =
+				titleElement.querySelector('span:nth-child(2)');
 
 			const author = authorElement.textContent;
 			const title = titleSpanElement.innerText;
@@ -126,7 +137,7 @@ contextBridge.exposeInMainWorld('rpcButton', {
 			}
 		`;
 
-		document.head.insertAdjacentHTML("beforeend", `<style>${css}</style>`)
+		document.head.insertAdjacentHTML('beforeend', `<style>${css}</style>`);
 	},
 	show: () => {
 		const btn = document.getElementById('reconnectButton');
@@ -139,7 +150,7 @@ contextBridge.exposeInMainWorld('rpcButton', {
 			document.body.appendChild(reconnectButton);
 
 			reconnectButton.addEventListener('click', () => {
-				if (reconnectButton.querySelector("span") !== null) return;
+				if (reconnectButton.querySelector('span') !== null) return;
 
 				reconnectButton.textContent = '';
 				reconnectButton.classList.remove('shake');
@@ -150,9 +161,9 @@ contextBridge.exposeInMainWorld('rpcButton', {
 				ipcRenderer.send('retry-login');
 			});
 		} else {
-			btn.style.display = "block";
+			btn.style.display = 'block';
 
-			const spinner = btn.querySelector("span");
+			const spinner = btn.querySelector('span');
 			if (spinner !== null) {
 				// Visual intended, but it also prevent the spam of the event since the lib
 				// keep the connect promise in memory and reject it right away.
@@ -171,11 +182,11 @@ contextBridge.exposeInMainWorld('rpcButton', {
 		const btn = document.getElementById('reconnectButton');
 		if (!btn) return;
 
-		btn.style.display = "none";
+		btn.style.display = 'none';
 
-		const spinner = btn.querySelector("span");
+		const spinner = btn.querySelector('span');
 		if (spinner !== null) {
 			btn.removeChild(spinner);
 		}
-	}
+	},
 });

@@ -48,7 +48,7 @@ async function createWindow() {
 	});
 
 	ipcMain.once('player-active', async () => {
-		// Observer for the play button and update the time with it
+		// Observer for the play button
 		await mainWindow.webContents.executeJavaScript(`
 			(async () => {
 				try {
@@ -78,7 +78,7 @@ async function createWindow() {
 			})()
 		`);
 
-		// Observer for the track time
+		// Observer for the track drag
 		await mainWindow.webContents.executeJavaScript(`
 			(async () => {
 				try {
@@ -146,7 +146,7 @@ async function createWindow() {
 
 Menu.setApplicationMenu(null);
 
-// When the RPC client timeout, we show the rpcButton
+// Handle the client timeout and clear the presence
 RPCClient.on('timeout', async () => {
 	await mainWindow.webContents.executeJavaScript(`
 		window.rpcButton.show();

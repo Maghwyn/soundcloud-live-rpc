@@ -24,6 +24,14 @@ async function createWindow() {
 		mainWindow = null;
 	});
 
+	ipcMain.on('retry-login', () => {
+		RPCClient.setup();
+	})
+
+	ipcMain.on('clear-presence', () => {
+		RPCClient.clearActivity();
+	})
+
 	ipcMain.on('set-player', (_: IpcMainEvent, isPlaying: boolean) => {
 		RPCClient.setPresenceStatus(isPlaying);
 	});
@@ -39,9 +47,22 @@ async function createWindow() {
 		RPCClient.setPresenceTrackTime(parseInt(time), parseInt(duration));
 	});
 
-	ipcMain.once('player-active', async (_: IpcMainEvent) => {
+	ipcMain.once('player-active', async () => {
 		// Observer for the play button and update the time with it
 		await mainWindow.webContents.executeJavaScript(`
+			function sendPlayingStatus() {
+				const playerElement = document.querySelector('.playControls__play');
+
+				if (playerElement) {
+					const isPlaying = playerElement.classList.contains('playing');
+					window.electronAPI.setPlayer(isPlaying);
+
+					if (isPlaying) {
+						sendPlayingTrackTime();
+					}
+				}
+			}
+
 			(async () => {
 				function sendPlayingTrackTime() {
 					const progressWrapperElement = document.querySelector('.playbackTimeline__progressWrapper');
@@ -50,19 +71,6 @@ async function createWindow() {
 						const time = progressWrapperElement.getAttribute('aria-valuenow');
 						const duration = progressWrapperElement.getAttribute('aria-valuemax');
 						window.electronAPI.setTrackTime(time, duration);
-					}
-				}
-
-				function sendPlayingStatus() {
-					const playerElement = document.querySelector('.playControls__play');
-
-					if (playerElement) {
-						const isPlaying = playerElement.classList.contains('playing');
-						window.electronAPI.setPlayer(isPlaying);
-
-						if (isPlaying) {
-							sendPlayingTrackTime();
-						}
 					}
 				}
 
@@ -80,21 +88,21 @@ async function createWindow() {
 
 		// Observer for the track data
 		await mainWindow.webContents.executeJavaScript(`
-			(async () => {
-				function sendPlayingTrackData() {
-					const authorElement = document.querySelector('.playbackSoundBadge__lightLink');
-					const titleElement = document.querySelector('.playbackSoundBadge__titleLink');
-					const spanElement = document.querySelector('.playbackSoundBadge__avatar .image__lightOutline span');
+			function sendPlayingTrackData() {
+				const authorElement = document.querySelector('.playbackSoundBadge__lightLink');
+				const titleElement = document.querySelector('.playbackSoundBadge__titleLink');
+				const spanElement = document.querySelector('.playbackSoundBadge__avatar .image__lightOutline span');
 
-					if (authorElement && titleElement && spanElement) {
-						const author = authorElement.textContent;
-						const title = titleElement.querySelector('span:nth-child(2)').innerText;
-						const url = titleElement.href;
-						const imageUrl = spanElement.style.backgroundImage;
-						window.electronAPI.setTrackData(author, title, url, imageUrl);
-					}
+				if (authorElement && titleElement && spanElement) {
+					const author = authorElement.textContent;
+					const title = titleElement.querySelector('span:nth-child(2)').innerText;
+					const url = titleElement.href;
+					const imageUrl = spanElement.style.backgroundImage;
+					window.electronAPI.setTrackData(author, title, url, imageUrl);
 				}
+			}
 
+			(async () => {
 				try {
 					const playbackSoundBadge = await waitForElement('.playbackSoundBadge', 5000);
 				
@@ -146,7 +154,7 @@ async function createWindow() {
 
 	// Wait for the page to fully load
 	mainWindow.webContents.on('did-finish-load', async () => {
-		// Generic function to wait for an element
+		// Generic function to wait for an element and load the rpcButton stylsheet
 		await mainWindow.webContents.executeJavaScript(`
 			async function waitForElement(selector, maxWaitTime, isInfinite = false) {
 				const startTime = Date.now();
@@ -161,6 +169,8 @@ async function createWindow() {
 			
 				return document.querySelector(selector);
 			}
+
+			window.rpcButton.loadCSS();
 		`);
 
 		// We await the player to be activated.
@@ -195,12 +205,21 @@ async function createWindow() {
 
 Menu.setApplicationMenu(null);
 
-// When the RPC client timeout, we exit the app.
-RPCClient.once('timeout', () => {
-	// TODO: Instead of exiting, perhaps show a notification of some sort in the top right corner
-	process.exitCode = 1;
-	app.exit(1);
-})
+// When the RPC client timeout, we show the rpcButton
+RPCClient.on('timeout', async () => {
+	await mainWindow.webContents.executeJavaScript(`
+		window.rpcButton.show();
+		window.electronAPI.clearPresence();
+	`);
+});
+
+RPCClient.on('connected', async () => {
+	console.log("connected ?");
+	await mainWindow.webContents.executeJavaScript(`
+		window.rpcButton.hide();
+		window.alert(sendPlayingStatus);
+	`).catch(err => console.error(err))
+});
 
 // When Electron has finished initializing, create the main window
 app.on('ready', createWindow);

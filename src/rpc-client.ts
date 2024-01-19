@@ -22,13 +22,7 @@ class RPCDiscordClient extends Client {
 
 	private constructor() {
 		super({ transport: 'ipc' });
-	
-		this.login({ clientId: config.clientId }).catch((err: Error) => {
-			//! Can be caused by login too many times in a short time
-
-			console.error(err);
-			this.emit('timeout', err);
-		});
+		this.setup();
 	}
 
 	public static getInstance(): RPCDiscordClient {
@@ -36,6 +30,15 @@ class RPCDiscordClient extends Client {
 			RPCDiscordClient.instance = new RPCDiscordClient();
 		}
 		return RPCDiscordClient.instance;
+	}
+
+	public setup() {
+		this.login({ clientId: config.clientId }).catch((err: Error) => {
+			//! Can be caused by login too many times in a short time
+
+			console.error(err);
+			this.emit('timeout', err);
+		});
 	}
 
 	public setPresenceStatus(isPlaying: boolean) {

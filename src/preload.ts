@@ -3,23 +3,15 @@ import { contextBridge, ipcRenderer } from 'electron/renderer';
 contextBridge.exposeInMainWorld('electronAPI', {
 	onClearPresence: () => ipcRenderer.send('clear-presence'),
 	onPlayerActive: () => ipcRenderer.send('player-active'),
-	onTrackDrag: () => {
-		const playbackTimeline: HTMLDivElement = document.querySelector('div.playbackTimeline');
+	onTrackTimeChange: () => {
+		const progressWrapperElement: HTMLDivElement = document.querySelector(
+			'.playbackTimeline__progressWrapper',
+		);
 
-		if (playbackTimeline) {
-			const dragDropped = !playbackTimeline.classList.contains('is-dragging');
-
-			if (dragDropped) {
-				const progressWrapperElement: HTMLDivElement = document.querySelector(
-					'.playbackTimeline__progressWrapper',
-				);
-
-				if (progressWrapperElement) {
-					const time = progressWrapperElement.getAttribute('aria-valuenow');
-					const duration = progressWrapperElement.getAttribute('aria-valuemax');
-					ipcRenderer.send('set-track-time', time, duration);
-				}
-			}
+		if (progressWrapperElement) {
+			const time = progressWrapperElement.getAttribute('aria-valuenow');
+			const duration = progressWrapperElement.getAttribute('aria-valuemax');
+			ipcRenderer.send('set-track-time', time, duration, true);
 		}
 	},
 	setPlayer: () => {
@@ -37,7 +29,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
 				if (progressWrapperElement) {
 					const time = progressWrapperElement.getAttribute('aria-valuenow');
 					const duration = progressWrapperElement.getAttribute('aria-valuemax');
-					ipcRenderer.send('set-track-time', time, duration);
+					ipcRenderer.send('set-track-time', time, duration, false);
 				}
 			}
 		}

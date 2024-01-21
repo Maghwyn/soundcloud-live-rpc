@@ -43,8 +43,8 @@ async function createWindow() {
 		},
 	);
 
-	ipcMain.on('set-track-time', (_: IpcMainEvent, time: string, duration: string) => {
-		RPCClient.setPresenceTrackTime(parseInt(time), parseInt(duration));
+	ipcMain.on('set-track-time', (_: IpcMainEvent, time: string, duration: string, debounced: boolean) => {
+		RPCClient.setPresenceTrackTime(parseInt(time), parseInt(duration), debounced);
 	});
 
 	ipcMain.once('player-active', async () => {
@@ -78,14 +78,16 @@ async function createWindow() {
 			})()
 		`);
 
-		// Observer for the track drag
+		// Observer for the track time change
 		await mainWindow.webContents.executeJavaScript(`
 			(async () => {
 				try {
-					const playbackTimeline = await waitForElement('div.playbackTimeline', 5000);
+					const playbackTimelinePGB = await waitForElement('div.playbackTimeline__progressWrapper', 5000);
+					const debouncedOnTrackTimeChange = debounce(window.electronAPI.onTrackTimeChange, 500);
 
-					const obserPlaybackTimeline = new MutationObserver(window.electronAPI.onTrackDrag);
-					obserPlaybackTimeline.observe(playbackTimeline, { attributes: true });
+					const obserPlaybackTimelinePGB = new MutationObserver(debouncedOnTrackTimeChange);
+					obserPlaybackTimelinePGB.observe(playbackTimelinePGB, { attributes: true });
+					window.electronAPI.onTrackTimeChange();
 				} catch (err) {
 					window.alert(err.message);
 				}
@@ -109,6 +111,18 @@ async function createWindow() {
 				}
 			
 				return document.querySelector(selector);
+			}
+
+			function debounce(func, delay) {
+				let timeoutId;
+			
+				return function (...args) {
+					clearTimeout(timeoutId);
+			
+					timeoutId = setTimeout(() => {
+						func.apply(this, args);
+					}, delay);
+				};
 			}
 
 			window.rpcButton.loadCSS();

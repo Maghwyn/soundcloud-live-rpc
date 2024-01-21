@@ -7,4 +7,4 @@ But it does mess with the update of the rich presence.
 
 Known issue - Won't fix :
 
-There's an intended small delay of half a second when you forward/backward regarding the time shown on the rp. It might aswell cause a slight delay between 0 and 1 second after that action, but there's no way to prevent it because the half second delay is there to prevent an extensive update of the rp which is not necessary.
+There's an intended small delay of half a second when you forward/backward regarding the time shown on the rp. It might aswell cause a slight delay between 0 and 1 second after that action, but there's no way to fix it because the half second delay is there to prevent an extensive update of the rp which is not necessary, and soundcloud does not provide a precise enough number.
